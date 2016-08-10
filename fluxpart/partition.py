@@ -50,7 +50,7 @@ def partition_from_wqc_series(w, q, c, wue, adjust_fluxes=False):
     # The loop progressively filters the data until a physically valid
     # partitioning is found or the loop/filter is exhausted. The first
     # iteration of progressive_lowcut removes only the mean value
-    # (q'=q-<q>, etc.), so the first iteration trys the unfiltered
+    # (q'=q-<q>, etc.), so the first iteration uses the unfiltered
     # deviations.
 
     for cnt, lowcut_wqc in enumerate(progressive_lowcut(w, q, c)):
@@ -106,7 +106,7 @@ def partition_from_qc_averages(qcdat, wue, init=None):
     init : (float, float), optional
         2-Tuple is initial value for (corr_cp_cr, var_cp).  If `init`
         = None (default), an initial estimate is calculated internally.
-        Note when specifying initial values: -1 < corr_cp_cr < 0, and
+        Note when specifying initial values: -1 < `corr_cp_cr` < 0, and
         `var_cp` has units of (kg/m^3)^2.
 
     Returns
@@ -121,7 +121,6 @@ def partition_from_qc_averages(qcdat, wue, init=None):
                                  nsoln.co2soln_id)
     else:
         fluxes = FluxComponents(*np.full(6, np.nan))
-
     return nsoln, fluxes
 
 
