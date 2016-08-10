@@ -1,10 +1,10 @@
---------------------------------------
-WORK IN PROGRESS.  Nothing to see yet.
---------------------------------------
-
 ==========
  fluxpart
 ==========
+
+----------------------------------------
+ WORK IN PROGRESS.  Nothing to see yet.
+----------------------------------------
 
 -------------------------------------------------------------------
  Python module for partitioning eddy covariance flux measurements.
