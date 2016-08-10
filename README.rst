@@ -1,10 +1,10 @@
-==========
- fluxpart
-==========
-
 --------------------------------------
 WORK IN PROGRESS.  Nothing to see yet.
 --------------------------------------
+
+==========
+ fluxpart
+==========
 
 -------------------------------------------------------------------
  Python module for partitioning eddy covariance flux measurements.
@@ -14,12 +14,9 @@ WORK IN PROGRESS.  Nothing to see yet.
         :target: https://www.usda.gov/
         :alt: U.S. Department of Agriculture
 
+'Agricultural Research Service <https://www.ars.usda.gov>'_
 
-'Agricultural Research Service <https://www.ars.usda.gov>'
-
-
-'U.S. Salinity Laboratory <https://www.ars.usda.gov/main/site_main.htm?modecode=20-36-05-00>'
-
+'U.S. Salinity Laboratory <https://www.ars.usda.gov/main/site_main.htm?modecode=20-36-05-00>'_
 
 Links
 -----
@@ -28,7 +25,6 @@ Links
 * Documentation: TODO
 * Examples: TODO
 * Source code: https://github.com/usda-ars-ussl/fluxpart
-
 
 Features
 --------
