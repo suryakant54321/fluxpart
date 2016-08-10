@@ -14,9 +14,10 @@ WORK IN PROGRESS.  Nothing to see yet.
         :target: https://www.usda.gov/
         :alt: U.S. Department of Agriculture
 
-'Agricultural Research Service <https://www.ars.usda.gov>'_
+`Agricultural Research Service <https://www.ars.usda.gov>`_
 
-'U.S. Salinity Laboratory <https://www.ars.usda.gov/main/site_main.htm?modecode=20-36-05-00>'_
+`U.S. Salinity Laboratory <https://www.ars.usda.gov/main/site_main.htm?modecode=20-36-05-00>`_
+
 
 Links
 -----
@@ -26,10 +27,12 @@ Links
 * Examples: TODO
 * Source code: https://github.com/usda-ars-ussl/fluxpart
 
+
 Features
 --------
 
 * TODO
+
 
 Citing fluxpart
 ---------------
