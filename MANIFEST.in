@@ -1,8 +1,8 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
+include *.rst
 include LICENSE
-include README.rst
+
+recursive-include tests *.py *.dat
+recursive-include examples *.py *.ipynb *.dat
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]

@@ -8,7 +8,7 @@ with open('HISTORY.rst') as history_file:
 
 setup(
     name='fluxpart',
-    version='0.1.0.dev1',
+    version='0.1.0dev1',
     description='Module for partitioning eddy covariance flux measurements.',
     long_description=README + '\n\n' + HISTORY,
     url='https://github.com/usda-ars-ussl/fluxpart',

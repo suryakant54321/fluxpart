@@ -31,7 +31,9 @@ Links
 Features
 --------
 
-* TODO
+* Implements the Scanlon and Sahu (2008) procedure for processing high
+  frequency eddy covariance data to obtain a partitioning of water vapor
+  and carbon dioxide fluxes into stomatal and nonstomatal components.
 
 
 Citing fluxpart
