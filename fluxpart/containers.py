@@ -7,14 +7,31 @@ SiteData.canopy_ht.__doc__ = "Canopy height, m"
 SiteData.ppath.__doc__ = "Photosynthetic pathway {'C3' or 'C4'}"
 
 
-FluxComponents = namedtuple('FluxComponents', 'wq wqt wqe wc wcp wcr')
-FluxComponents.__doc__ += "Water vapor and carbon dioxide flux components"
-FluxComponents.wq.__doc__ = "Total water vapor flux : float, kg/m^2/s"
-FluxComponents.wqt.__doc__ = "Transpiration vapor flux : float, kg/m^2/s"
-FluxComponents.wqe.__doc__ = "Evaporation vapor flux : float, kg/m^2/s"
-FluxComponents.wc.__doc__ = "Total CO2 flux : float, kg/m^2/s"
-FluxComponents.wcp.__doc__ = "Photosynthesis CO2 flux : float, kg/m^2/s"
-FluxComponents.wcr.__doc__ = "Respiration CO2 flux : float, kg/m^2/s"
+class FluxComponents(namedtuple('FluxComponents', 'wq wqt wqe wc wcp wcr')):
+    """Temporary container for computed vapor and CO2 flux components.
+
+    Attributes
+    ----------
+    wq, wqt, wqe : float, kg/m^2/s"
+        Total, transpiration, and evaporation water H2O fluxes
+    wc, wcp, wcr : float, kg/m^2/s"
+        Total, photosynthesis, and respiration CO2 fluxes
+    """
+
+    slots = ()
+
+    def __str__(self):
+        # Print with common mass units instead of SI
+        wqs = [1e3 * self.wq, 1e3 * self.wqt, 1e3 * self.wqe]
+        wcs = [1e6 * self.wc, 1e6 * self.wcp, 1e6 * self.wcr]
+        return ('FluxComponents(\n'
+                '    wq = {:.4} g/m^2/s,\n'
+                '    wqt = {:.4} g/m^2/s,\n'
+                '    wqe = {:.4} g/m^2/s,\n'
+                '    wc = {:.4} mg/m^2/s,\n'
+                '    wcp = {:.4} mg/m^2/s,\n'
+                '    wcr = {:.4} mg/m^2/s)'
+                ''.format(*wqs, *wcs))
 
 
 class Result(namedtuple('Result', 'dataread valid_partition mssg')):
@@ -24,7 +41,7 @@ class Result(namedtuple('Result', 'dataread valid_partition mssg')):
     ----------
     dataread, valid_partition : bool
         Indicates success/failure in reading high frequency data
-        (`dataread`) and obtaining a valid partioning solution 
+        (`dataread`) and obtaining a valid partioning solution
         (`valid_partition`)
     mssg : str
         Possibly informative message if `dataread` or`valid_partition`
@@ -45,7 +62,7 @@ class Result(namedtuple('Result', 'dataread valid_partition mssg')):
 class NumerSoln(namedtuple('NumerSoln', 'corr_cp_cr var_cp sig_cr co2soln_id '
                            'validroot validmssg init success mssg nfev')):
     """Results of numerical root finding.
-    
+
     The sought root is (corr_cp_cr, var_cp).
 
     Attributes
@@ -102,7 +119,7 @@ class WUE(namedtuple('WUE',
                      'wue inter_h2o inter_co2 ambient_h2o ambient_co2 vpd '
                      'ci_mod ppath meas_ht canopy_ht')):
     """Summary of leaf-level water use efficiency calculation.
-    
+
     Attributes
     ----------
     wue : float, kg CO2 / kg H2O
@@ -115,7 +132,7 @@ class WUE(namedtuple('WUE',
         Atmospheric vapor pressure deficit.
     ci_mod : (str, float) or (str, (float,float))
         str = {'const_ppm', 'const_ratio', 'linear', 'sqrt'} indicates
-        the model used to estimate the intercellular CO2 concentration. 
+        the model used to estimate the intercellular CO2 concentration.
         float or (float, float) are the model parameter values used.
     ppath : {'C3' or 'C4'}
         Photosynthetic pathway.
