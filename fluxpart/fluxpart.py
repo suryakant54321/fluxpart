@@ -237,7 +237,8 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
             'fluxes': fluxes,
             'datsumm': hfsum,
             'wue': lwue,
-            'numsoln': pout['numsoln']}
+            'numsoln': pout['numsoln'],
+            'qcdat': pout['qcdat']}
 
 
 def converter_func(slope, intercept):
