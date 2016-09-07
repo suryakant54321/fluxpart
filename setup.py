@@ -14,8 +14,8 @@ LONG = ("Python 3 module implementing the Scanlon and Sahu (2008) procedure "
 
 setup(
     name='fluxpart',
-    version='0.1.0dev1',
-    description='Partition water vapor and carbon dioxide flux measurements.',
+    version='0.1.0dev0',
+    description='Partition water vapor and carbon dioxide fluxes',
     long_description=LONG,
     url='https://github.com/usda-ars-ussl/fluxpart',
     author='Todd Skaggs',

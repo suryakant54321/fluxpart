@@ -1,0 +1,69 @@
+package:
+  name: fluxpart
+  version: "0.1.0.dev0"
+
+source:
+  fn: fluxpart-0.1.0.dev0.tar.gz
+  url: https://pypi.python.org/packages/b7/f0/f60ec38a12ec043c9cfe9d33dcaf0a47728e12060ba40d8d6242cb99fd07/fluxpart-0.1.0.dev0.tar.gz
+  md5: e7b25b8b8fd7c2f137c7ada927d87f34
+#  patches:
+   # List any patch files here
+   # - fix.patch
+
+# build:
+  # noarch_python: True
+  # preserve_egg_dir: True
+  # entry_points:
+    # Put any entry points (scripts to be generated automatically) here. The
+    # syntax is module:function.  For example
+    #
+    # - fluxpart = fluxpart:main
+    #
+    # Would create an entry point called fluxpart that calls fluxpart.main()
+
+
+  # If this is a new build for the same version, increment the build
+  # number. If you do not include this key, it defaults to 0.
+  # number: 1
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - numpy
+    - scipy
+    - pywavelets
+
+  run:
+    - python
+    - numpy
+    - scipy
+    - pywavelets
+
+test:
+  # Python imports
+  imports:
+    - fluxpart
+
+  # commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
+  requires:
+    - pytest
+    # Put any additional test requirements here.  For example
+    # - nose
+
+about:
+  home: https://github.com/usda-ars-ussl/fluxpart
+  license: Public Domain CC0
+  summary: 'Partition water vapor and carbon dioxide fluxes'
+  license_family: Public-Domain
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
