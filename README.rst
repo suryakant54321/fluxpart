@@ -1,14 +1,10 @@
-==========
- fluxpart
-==========
+========
+Fluxpart
+========
 
-----------------------------------------
- WORK IN PROGRESS.  Nothing to see yet.
-----------------------------------------
-
--------------------------------------------------------------------
- Python module for partitioning eddy covariance flux measurements.
--------------------------------------------------------------------
+-----------------------------------------------------------------------
+Python 3 module for partitioning water vapor and carbon dioxide fluxes.
+-----------------------------------------------------------------------
 
 .. image:: http://www.usda.gov/img/headers/USDA-Logo.png
         :target: https://www.usda.gov/
@@ -20,7 +16,7 @@
 
 
 Links
------
+=====
 
 * Home page: TODO
 * Documentation: TODO
@@ -29,15 +25,16 @@ Links
 
 
 Features
---------
+========
 
 * Implements the Scanlon and Sahu (2008) procedure for processing high
   frequency eddy covariance data to obtain a partitioning of water vapor
-  and carbon dioxide fluxes into stomatal and nonstomatal components.
+  and carbon dioxide fluxes into stomatal (transpiration, photosynthesis)
+  and nonstomatal (evaporation, respiration) components.
 
 
 Citing fluxpart
----------------
+===============
 
 If you use fluxpart in your research or project, please cite 
 

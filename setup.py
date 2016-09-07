@@ -1,16 +1,22 @@
 from setuptools import setup
 
-with open('README.rst') as readme_file:
-    README = readme_file.read()
+# with open('README.rst') as readme_file:
+#     README = readme_file.read()
 
-with open('HISTORY.rst') as history_file:
-    HISTORY = history_file.read()
+# with open('HISTORY.rst') as history_file:
+#     HISTORY = history_file.read()
+
+LONG = ("Python 3 module implementing the Scanlon and Sahu (2008) procedure "
+        "for processing high frequency eddy covariance data to obtain a "
+        "partitioning of measured water vapor and carbon dioxide fluxes into "
+        "stomatal (transpiration, photosynthesis) and nonstomatal "
+        "(evaporation, respiration) components.")
 
 setup(
     name='fluxpart',
     version='0.1.0dev1',
-    description='Module for partitioning eddy covariance flux measurements.',
-    long_description=README + '\n\n' + HISTORY,
+    description='Partition water vapor and carbon dioxide flux measurements.',
+    long_description=LONG,
     url='https://github.com/usda-ars-ussl/fluxpart',
     author='Todd Skaggs',
     author_email='todd.skaggs@ars.usda.gov',
