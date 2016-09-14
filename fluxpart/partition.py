@@ -150,7 +150,8 @@ def findroot(qcdat, wue, init=None):
         varcp_ubound1 = wue**2 * qcdat.var_q / (1 - init_corr_cp_cr**2)
         init = (init_corr_cp_cr, 0.5 * min(varcp_ubound0, varcp_ubound1))
 
-    for co2_id in (1, 0):
+    co2_ids = (1, 0) if qcdat.wc < 0 else (0, )
+    for co2_id in co2_ids:
         co2soln_id = co2_id
         try:
             soln = optimize.root(residual_func, init, method='hybr',

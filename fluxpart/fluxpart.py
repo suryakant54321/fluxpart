@@ -212,10 +212,11 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
                 'wue': lwue,
                 'numsoln': None}
 
-    # compute partitioned fluxes and return
+    # compute partitioned fluxes
     pout = fp.partition_from_wqc_series(hfdat['w'], hfdat['q'], hfdat['c'],
                                         lwue.wue, adjusting_fluxes)
 
+    # collect results and return
     result = Result(dataread=True,
                     valid_partition=pout['valid_partition'],
                     mssg=pout['partmssg'])
