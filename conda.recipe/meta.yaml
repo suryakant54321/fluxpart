@@ -1,16 +1,30 @@
-{% set version = "0.1.0.dev0" %}
-
 package:
   name: fluxpart
-  version: {{ version }}
+  version: "0.1.0.dev1"
 
 source:
-  fn: fluxpart-{{ version }}.tar.gz
-  url: https://pypi.python.org/packages/b7/f0/f60ec38a12ec043c9cfe9d33dcaf0a47728e12060ba40d8d6242cb99fd07/fluxpart-{{ version }}.tar.gz
-  md5: e7b25b8b8fd7c2f137c7ada927d87f34
+  fn: fluxpart-0.1.0.dev1.tar.gz
+  url: https://pypi.python.org/packages/ce/94/d156bf39cf4a052c8ed63977f794e3e621fa4a9bb2a632970d3541f18a0f/fluxpart-0.1.0.dev1.tar.gz
+  md5: 809ff35bfaea98a91e5f0c7b0e523a3f
+#  patches:
+   # List any patch files here
+   # - fix.patch
 
-build:
-  number: 1
+# build:
+  # noarch_python: True
+  # preserve_egg_dir: True
+  # entry_points:
+    # Put any entry points (scripts to be generated automatically) here. The
+    # syntax is module:function.  For example
+    #
+    # - fluxpart = fluxpart:main
+    #
+    # Would create an entry point called fluxpart that calls fluxpart.main()
+
+
+  # If this is a new build for the same version, increment the build
+  # number. If you do not include this key, it defaults to 0.
+  # number: 1
 
 requirements:
   build:
@@ -27,13 +41,29 @@ requirements:
     - pywavelets
 
 test:
+  # Python imports
   imports:
     - fluxpart
+
+  # commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
   requires:
     - pytest
+    # Put any additional test requirements here.  For example
+    # - nose
 
 about:
   home: https://github.com/usda-ars-ussl/fluxpart
   license: Public Domain CC0
   summary: 'Partition water vapor and carbon dioxide fluxes'
   license_family: Public-Domain
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
