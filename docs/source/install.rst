@@ -2,7 +2,7 @@
  Installation
 =============
 
-.. _Python lanuage: https://www.python.org
+.. _Python: https://www.python.org
 .. _NumPy: http://www.numpy.org
 .. _SciPy: http://www.scipy.org
 .. _Matplotlib: http://matplotlib.org
@@ -67,7 +67,7 @@ Alternatively:
 For novice Python/SciPy users
 -----------------------------
 
-**Fluxpart** is a Python 3 module. Using it requires a `Python language`_
+**Fluxpart** is a Python 3 module. Using it requires a Python_ language
 interpreter as well as a few standard scientific Python libraries (SciPy_).
 
 The recommended way to install **fluxpart** and create the required

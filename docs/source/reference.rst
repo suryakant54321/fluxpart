@@ -1,4 +1,4 @@
-.. fluxpart-reference::
+.. _fluxpart-reference:
 
 =========
 Reference

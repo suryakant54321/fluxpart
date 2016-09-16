@@ -29,7 +29,7 @@ with::
 
 This generates the file `qfluxes.csv`:
 
-.. code:: none
+.. code-block:: none
 
     2012-06-05 00:00:00,6.8395659421052015e-06,5.886926874750075e-06
     2012-06-05 00:15:00,nan,nan

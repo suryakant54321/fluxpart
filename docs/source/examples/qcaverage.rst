@@ -13,10 +13,10 @@ corr(q,c), and WUE.
 In **fluxpart**, the partitioning calculation using interval average values
 is made in :func:`fluxpart.partition.partition_from_qc_averages`.
 
-**Example**: Palatella et al. [PRV14_, Table 1] reported the following
+**Example**: Palatella et al. [PRV14]_ (Table 1) reported the following
 quantities for an hour time interval
 
-.. code:: none
+.. code-block:: none
 
     stddev(q) = 0.411163 g/m^3
     stddev(c) = 5.182580 mg/m^3
