@@ -41,7 +41,7 @@ class FluxComponents(namedtuple('FluxComponents', 'wq wqt wqe wc wcp wcr')):
                 '    wc = {:.4} mg/m^2/s,\n'
                 '    wcp = {:.4} mg/m^2/s,\n'
                 '    wcr = {:.4} mg/m^2/s)'
-                ''.format(*wqs, *wcs))
+                ''.format(*(wqs + wcs)))
 
 
 class Fluxes(namedtuple('Fluxes', 'Fq Fqt Fqe Fc Fcp Fcr LE LEt LEe Fc_mol '
@@ -85,7 +85,7 @@ class Fluxes(namedtuple('Fluxes', 'Fq Fqt Fqe Fc Fcp Fcr LE LEt LEe Fc_mol '
                 '    Fc_mol = {:.4} umol/m^2/s,\n'
                 '    Fcp_mol = {:.4} umol/m^2/s,\n'
                 '    Fcr_mol = {:.4} umol/m^2/s)'
-                ''.format(*Fq, *Fc, *LE, *Fc_mol))
+                ''.format(*(Fq + Fc + LE + Fc_mol)))
 
 
 class HFSummary(namedtuple('HFSummary', 'T P Pvap ustar wind_w var_w '
