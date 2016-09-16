@@ -19,18 +19,16 @@ Links
 =====
 
 * Home page: TODO
-* Documentation: TODO
-* Examples: TODO
+* Documentation: https://fluxpart.readthedocs.io
 * Source code: https://github.com/usda-ars-ussl/fluxpart
 
 
 Features
 ========
 
-* Implements the Scanlon and Sahu (2008) procedure for processing high
-  frequency eddy covariance data to obtain a partitioning of water vapor
-  and carbon dioxide fluxes into stomatal (transpiration, photosynthesis)
-  and nonstomatal (evaporation, respiration) components.
+* Implements the Scanlon and Sahu (2008) procedure for partitioning measured
+  water vapor and carbon dioxide fluxes into stomatal (transpiration,
+  photosynthesis) and nonstomatal (evaporation, respiration) components.
 
 
 Citing fluxpart
@@ -39,4 +37,3 @@ Citing fluxpart
 If you use fluxpart in your research or project, please cite 
 
 * TODO
-
