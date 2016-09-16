@@ -41,13 +41,13 @@ Recommended:
     Linux, Mac OS X::
 
         conda install anaconda-client
-        conda env create ussl/fluxpart
+        conda env create ussl/fluxpart-env
         source activate fluxpart
 
     Windows::
 
         conda install anaconda-client
-        conda env create ussl/fluxpart
+        conda env create ussl/fluxpart-env
         activate fluxpart
 
 Alternatively:
