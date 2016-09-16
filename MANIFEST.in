@@ -1,5 +1,6 @@
 include *.rst
 include LICENSE
+include VERSION
 
 recursive-include tests *.py *.dat
 recursive-include examples *.py *.ipynb *.dat

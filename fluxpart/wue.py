@@ -107,7 +107,7 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
             ci/ca = 1 - sqrt(1.6 * lambd *  vpd / ca)
 
         The paramater lambd has units of kg-CO2 / m^3 / Pa, and defaults
-        to 22e-9 for C3 plants and TODO for C4. See [KP09]_.
+        to 22e-9 for C3 plants and TODO for C4. See [KPO09]_.
 
     """
 

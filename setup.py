@@ -6,6 +6,9 @@ from setuptools import setup
 # with open('HISTORY.rst') as history_file:
 #     HISTORY = history_file.read()
 
+with open(os.path.join(os.path.dirname(__file__)), 'VERSION') as vfile:
+    VERSION = vfile.read().strip()
+
 LONG = ("Python 3 module implementing the Scanlon and Sahu (2008) procedure "
         "for processing high frequency eddy covariance data to obtain a "
         "partitioning of measured water vapor and carbon dioxide fluxes into "
@@ -14,7 +17,7 @@ LONG = ("Python 3 module implementing the Scanlon and Sahu (2008) procedure "
 
 setup(
     name='fluxpart',
-    version='0.1.0dev0',
+    version=VERSION,
     description='Partition water vapor and carbon dioxide fluxes',
     long_description=LONG,
     url='https://github.com/usda-ars-ussl/fluxpart',
