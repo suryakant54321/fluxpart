@@ -22,8 +22,9 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
     photosynthesis) and nonstomatal (evaporation, respiration)
     components using the method of [SS08]_.
 
-    Imported by __init__ so it can imported directly without referencing
-    the submodule: ``import fluxpart.flux_partition``.
+    The fluxpart submodule is imported in __init__ so this function can
+    imported without referencing the submodule:
+    ``import fluxpart.flux_partition``.
 
     The following notation is used in variable naming to represent
     meteorological quantities::

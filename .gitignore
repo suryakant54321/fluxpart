@@ -33,7 +33,6 @@ coverage.xml
 .hypothesis/
 
 # Sphinx documentation
-docs/
 docs/_build/
 
 # dotenv
