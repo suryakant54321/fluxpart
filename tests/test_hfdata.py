@@ -2,7 +2,7 @@ import os, io
 import numpy as np
 import numpy.testing as npt
 from fluxpart.hfdata import HFData
-from fluxpart.fluxpart import converter_func
+from fluxpart.fluxpart import _converter_func
 
 TESTDIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -16,10 +16,10 @@ def test_hfdata_from_txt():
         fname,
         cols,
         converters={
-            'T': converter_func(1, 273.15),
-            'q': converter_func(1e-3, 0),
-            'c': converter_func(1e-6, 0),
-            'P': converter_func(1e3, 0)},
+            'T': _converter_func(1, 273.15),
+            'q': _converter_func(1e-3, 0),
+            'c': _converter_func(1e-6, 0),
+            'P': _converter_func(1e3, 0)},
         flags=(9, 0),
         delimiter=",",
         skip_header=4)
@@ -69,7 +69,7 @@ def test_hfdata_from_txt():
         comments='#',
         skip_header=1,
         missing_values="???",
-        converters={'q': converter_func(10., 0)},
+        converters={'q': _converter_func(10., 0)},
         flags=(9, 0),
         delimiter=",",
         rd_tol=0.1,

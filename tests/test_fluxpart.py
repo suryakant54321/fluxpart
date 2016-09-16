@@ -2,7 +2,7 @@ import os
 from types import SimpleNamespace
 import numpy.testing as npt
 from fluxpart import flux_partition
-from fluxpart.fluxpart import set_fieldsite_data
+from fluxpart.fluxpart import _set_fieldsite_data
 
 TESTDIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -99,13 +99,13 @@ def assert_set_data(data):
 def test_set_fieldsite_data():
     """Test different argument types (dict, list, tuple, etc.) for
     passing field meta data."""
-    data = set_fieldsite_data({'meas_ht': 3, 'canopy_ht': 2.5, 'ppath': 'C4'})
+    data = _set_fieldsite_data({'meas_ht': 3, 'canopy_ht': 2.5, 'ppath': 'C4'})
     assert_set_data(data)
-    data = set_fieldsite_data([3, 2.5, 'C4'])
+    data = _set_fieldsite_data([3, 2.5, 'C4'])
     assert_set_data(data)
-    data = set_fieldsite_data((3, 2.5, 'C4'))
+    data = _set_fieldsite_data((3, 2.5, 'C4'))
     assert_set_data(data)
-    data = set_fieldsite_data(
+    data = _set_fieldsite_data(
         SimpleNamespace(meas_ht=3, canopy_ht=2.5, ppath='C4'))
     assert_set_data(data)
 

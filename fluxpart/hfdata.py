@@ -1,3 +1,5 @@
+"""Data strucure for high-frequency eddy covarinace time series."""
+
 import numpy as np
 
 import fluxpart.util as util
@@ -11,13 +13,66 @@ class HFData:
     """High-frequency eddy covariance data.
 
     The following notation is used in variable naming and documentation
-    to represent meteorological quantities (SI units):
+    to represent meteorological quantities (SI units)::
 
         u, v, w = wind velocities (m/s)
         q = water vapor mass concentration (kg/m^3)
         c = carbon dioxide mass concentration (kg/m^3)
         T = air temperature (K)
         P = total air pressure (Pa)
+
+    Parameters
+    ----------
+    fname : str
+        Name of delimited file containing high-frequency eddy covariance
+        time series data.
+    cols : 7*(int,)
+        7-tuple of integers indicating the column numbers of `fname`
+        that contain series data for (u, v, w, q, c, T, P), in that
+        order. Uses 0-based indexing.
+    converters : dict, optional
+        Dictionary of functions used to convert any non-SI data to SI
+        units.  Dict keys are 'u', 'v', 'w', 'q', 'c', 'T', or 'P', and
+        the funcs take string single argument, e.g.
+        ``converters={'P': lambda s: 1e3 * float(s)}``.
+    bounds : dict, optional
+        Dictionary specifying any prescribed lower and upper bounds for
+        legal data. Dict entries have the form
+        ``varname: (float, float)``, where varname is one of 'u', 'v',
+        'w', 'q', 'c', 'T', or 'P', and the 2-tuple holds values for the
+        lower and upper bounds: ``(lower, upper)``.  Data records are
+        rejected if a variable in the record is outside the prescribed
+        bounds. Default is
+        ``bounds = {'c': (0, np.inf), 'q': (0, np.inf)}`` such that data
+        records are rejected if c or q data are not positive values.
+    flags : 2-tuple or list of 2-tuples, optional
+        Specifies that one or more columns in `fname` are used to flag
+        bad data records. Each tuple is of the form (col, badval),
+        where col is an int specifying the column number containing the
+        flag (0-based indexing), and badval is the value of the flag
+        that indicates a bad data record.
+    rd_tol : float, optional
+        Relative tolerance for rejecting the datafile. Default is
+        `rd_tol` = 0.4.  See `ad_tol` for explanation.
+    ad_tol : int, optional
+        Absolute tolerance for rejecting the datafile. Defaults is
+        `ad_tol` = 1024. If the datafile contains bad records (not
+        readable, out-of-bounds, or flagged data), the partitioning
+        analysis is performed using the longest stretch of consecutive
+        good data records found, unless that stretch is too short,
+        in which case the analysis is aborted. The criteria for
+        judging 'too short' can be specified in both relative and
+        absolute terms: the datafile is rejected if the good stretch
+        is a fraction of the total data that is less than `rd_tol`,
+        and/or is less than `ad_tol` records long.
+    kwargs
+        Keyword arguments passed to numpy.genfromtxt_ to specify
+        formatting of the delimited datafile. See numpy.genfromtxt_
+        for a full description of available options.
+
+
+    .. _numpy.genfromtxt:
+        http://docs.scipy.org/doc/numpy/reference/generated/numpy.genfromtxt.html
 
     Attributes
     ----------
@@ -28,68 +83,7 @@ class HFData:
 
     def __init__(self, fname, cols, converters=None, flags=None, bounds=None,
                  rd_tol=0.5, ad_tol=1024, **kwargs):
-        """Read high frequency eddy covarince data, apply some QA/QC.
-
-        Parameters
-        ----------
-        fname : str
-            Name of delimited file containing high-frequency eddy covariance
-            time series data.
-        cols : 7*(int,)
-            7-tuple of integers indicating the column numbers of `fname`
-            containing series data for (u, v, w, q, c, T, P), in that
-            order. Uses 0-based indexing.
-        converters : dict, optional
-            Dictionary of functions used to convert any non-SI data to
-            SI units.  Dict keys are 'u', 'v', 'w', 'q', 'c', 'T', or
-            'P', and the funcs take string single argument, e.g.
-            ``converters = {'P': lambda s: 1e3*float(s)}``.
-        bounds : dict, optional
-            Dictionary specifying any prescribed lower and upper bounds for
-            legal data. Dict entries have the form
-                varname: (float, float)
-            where varname is one of 'u', 'v', 'w', 'q', 'c', 'T', or 'P',
-            and the 2-tuple holds values for the lower and upper bounds:
-            (lower, upper).  Data records are rejected if a variable in the
-            record is outside the prescribed bounds. Default is
-                bounds = {'c': (0, np.inf), 'q': (0, np.inf)}
-            such that data records are rejected if c or q data are not
-            positive values.
-        flags : 2-tuple or list of 2-tuples, optional
-            Specifies that one or more columns in `fname` are used to flag
-            bad data records. Each tuple is of the form (col, badval),
-            where col is an int specifying the column number containing the
-            flag (0-based indexing), and badval is the value of the flag
-            that indicates a bad data record.
-        rd_tol : float, optional
-        ad_tol : int, optional
-            Tolerances for rejecting the datafile. If the datafile contains
-            bad records (not readable, out-of-bounds, or flagged data), the
-            partitioning analysis is performed using the longest stretch of
-            consecutive good data records found, unless that stretch is too
-            short, in which case the analysis is aborted. The criteria for
-            judging 'too short' can be specified in both relative and
-            absolute terms: the datafile is rejected if the good stretch is
-            a fraction of the total data that is less than `rd_tol`, and/or
-            is less than `ad_tol` records long.  Defaults are `rd_tol` = 0.4
-            and `ad_tol` = 1024.
-        kwargs
-            Keyword arguments passed to numpy.genfromtxt to specify
-            formatting of the delimited datafile. See numpy documentation
-            for full description of available options. Among the most
-            commonly required are:
-        delimiter : str, int, or sequence, optional
-            The string used to separate values. By default, any consecutive
-            whitespaces act as delimiter. An integer or sequence of integers
-            can also be provided as width(s) of each field.
-        skip_header : int, optional
-            The number of lines to skip at the beginning of the file.
-        skip_footer : int, optional
-            The number of lines to skip at the end of the file.
-        comments : str, optional
-            The character used to indicate the start of a comment. All the
-            characters occurring on a line after a comment are discarded
-        """
+        """Read high frequency eddy covarince data, apply some QA/QC."""
 
         var_names = ['u', 'v', 'w', 'q', 'c', 'T', 'P']
         self.names = var_names.copy()
@@ -167,23 +161,17 @@ class HFData:
         self.data_table[name] = value
 
     def truncate(self):
-        """Truncate length of data_table view to largest power of 2."""
+        """Truncate length of data_table view to largest possible power of 2."""
         truncate_len = 2 ** int(np.log2(self.data_table.shape[0]))
         self.data_table = self.data_table[:truncate_len]
 
     def qc_correct(self):
         """Adjust q and c data series to correct for external effects.
 
-        References
-        ----------
-        M. Detto, G.G. Katul (2007). Simplified expression for adjusting
-        higher-order turbulent statistics obtained from open path gas
-        analyzers. Boundary-Layer Meterol, 122:205-216.
-        DOI:10.1007/s10546-006-9105-1.
+        Water vapor and carbon dioxide series data in the data_table are
+        corrected for external fluctuations associated with air
+        temperature and vapor density. See: [WPL80]_ and [DK07]_.
 
-        E.K. Webb, G.I. Pearman, R. Leuning (1980). Correction of flux
-        measurements for density effects due to head and water vapor
-        transfer. Quart J R Met Soc, 106:85-100.
         """
 
         if self._qc_already_corrected:
@@ -213,7 +201,9 @@ class HFData:
 
         Returns
         -------
-        HFSummary container
+        namedtuple
+            :class:`~fluxpart.containers.HFSummary`
+
         """
 
         hfs = util.stats2(self.data_table, self.names)

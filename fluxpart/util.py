@@ -47,6 +47,9 @@ def progressive_lowcut_series(series):
     from reconstrution of a multilevel discrete haar wavelet
     decompositon of `series`.
 
+    N.B.: The length of `series` is assumed to be a power of 2
+    (does not check!)
+
     Parameters
     ----------
     series : array_like
@@ -62,45 +65,41 @@ def progressive_lowcut_series(series):
     -----
     After an N level discrete wavelet decomposition, a data series S can
     be reconstructed in terms of wavelet 'approximations' (A) and
-    'details' (D):
+    'details' (D)::
 
-    S = A(N) + D(N) + D(N-1) ... D(2) + D(1)
-      = A(N-1) + D(N-1) + ... D(2) + D(1)        [A(N-1) = A(N) + D(N)]
-        ...
-      = A(1) + D(1)                              [(A(1) = A(2) + D(2)]
+        S = A(N) + D(N) + D(N-1) ... D(2) + D(1)
+          = A(N-1) + D(N-1) + ... D(2) + D(1)        [A(N-1) = A(N) + D(N)]
+            ...
+          = A(1) + D(1)                              [(A(1) = A(2) + D(2)]
 
     where A(N) represents the 'lowest' level approximation [e.g., for
     the haar wavelet and a complete decomposition of dyadic length data,
     A(N) is equal to mean(S)]
 
-    The sequence returned by this function is:
+    The sequence returned by this function is::
 
-    S - A(N),
-    S - A(N-1),
-    S - A(N-2),
-    ...,
-    S - A(1)
+        S - A(N),
+        S - A(N-1),
+        S - A(N-2),
+        ...,
+        S - A(1)
 
-    This sequence is computed by the equivalent:
+    This sequence is computed by the equivalent::
 
-    S - A(N),
-    S - A(N) - D(N),
-    S - A(N) - D(N) - D(N-1),
-    ...,
-    S - A(N) - D(N) - D(N-1) - ... - D(2),
+        S - A(N),
+        S - A(N) - D(N),
+        S - A(N) - D(N) - D(N-1),
+        ...,
+        S - A(N) - D(N) - D(N-1) - ... - D(2),
 
-    i.e. the details are removed in sequence
+    i.e. the details are removed in sequence::
 
-    lowcut = S - A(N)
-    for j = N to 2
-        lowcut = lowcut - D(j)
+        lowcut = S - A(N)
+        for j = N to 2
+            lowcut = lowcut - D(j)
 
-    N.B.
-    ----
-    The length of `series` should be a power of 2. Otherwise ... I don't
-    know ... probably would have to do something to ensure the filtered
-    series have the same length as `series`.
     """
+
     series_data = np.asarray(series)
     wavelet = pywt.Wavelet('haar')
     nlevel = pywt.dwt_max_level(series_data.size, wavelet.dec_len)

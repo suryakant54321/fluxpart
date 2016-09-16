@@ -6,103 +6,108 @@ from fluxpart.constants import SPECIFIC_GAS_CONSTANT as Rgas
 from fluxpart.containers import WUE
 
 
+# Defalut parameter values intercellular CO2 (ci) models
+CI_DEFAULT_PARAMS = {
+    'C3': {'const_ppm': 280.,    # ppm
+           'const_ratio': 0.7,
+           'linear': (1, 2e-2),
+           'sqrt': 22e-9},       # kg-co2 / m^3 / Pa
+
+    'C4': {'const_ppm': 130.,
+           'const_ratio': 0.44,
+           'linear': (1, 2e-2),
+           'sqrt': 22e-9}}
+
+
 def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
 
-    """Estimate leaf-level water use efficiency (kg CO2 / kg H2O).
+    """Estimate leaf-level water use efficiency.
 
     Parameters
     ----------
-    hfs : HFSummary namedtuple or equivalent namespace
-        Container holding summary high frequency eddy covariance data.
-        Possesses the following attributes (all floats):
-            rho_vapor  : Mean vapor density, kg/m^3
-            rho_co2    : Mean carbon dioxide concentration, kg/m^3
-            T          : Mean air temperature, K;
-            P          : Mean atmospheric pressure, Pa;
-            Fq         : Mean water vapor flux, kg/m^2/s;
-            Fc         : Mean carbon dioxide flux, kg/m^2/s,
-            cov_w_T    : Covariance of wind and temperature, K m/s;
-            ustar      : Friction velocity, m/s;
-            rho_totair : Moist air density, kg/m^3.
-    site : SiteData namedtumple or equivalent namespace
-        Container holding field-site meta data. Possesses the following
+    hfs : :class:`~fluxpart.containers.HFSummary` tuple or equivalent namespace
+        High frequency summary statistics, must possesses the following
+        attributes (all floats):
+        `rho_vapor`, mean vapor density (kg/m^3);
+        `rho_co2`, mean carbon dioxide concentration (kg/m^3);
+        `T`, mean air temperature (K);
+        `P`, mean atmospheric pressure (Pa);
+        `Fq`, mean water vapor flux (kg/m^2/s);
+        `Fc`, mean carbon dioxide flux (kg/m^2/s);
+        `cov_w_T`, covariance of wind and temperature (K m/s);
+        `ustar`, friction velocity (m/s);
+        `rho_totair`, moist air density (kg/m^3).
+    site : :class:`~fluxpart.containners.SiteData` tuple or equivalent namespace
+        Container holding field-site meta data, possessing the following
         attributes:
-            meas_ht, canopy_ht : float, m
-                Eddy covariance measurement height (`meas_ht`) and
-                vegetation canopy height (`canopy_ht`)
-            ppath : {'C3', 'C4'}
-                The photosynthetic pathway of the site vegetation
+        `meas_ht`, eddy covariance measurement height (m);
+        `canopy_ht`, vegetation canopy height (m);
+        `ppath`, photosynthetic pathway ('C3' or 'C4')
     ci_mod : str or [str, float] or [str, (float, float)], optional
         Specifies the model to be used to determine the leaf
         intercellular CO2 concentration. The str is the model name
-        and is one fo the following (see Notes),
-
-        str = {'const_ratio', 'const_ppm', 'linear', 'sqrt'}
-
-        If ci_mod is a 2-list (or 2-tuple), the first element is str and
-        the second is the model parameter value(s) (see Notes).  If the
-        model has more than one parameter, the second element is a
-        tuple holding the values.  If only str is provided, default
+        and is one fo the following (see Notes below for definitions),
+        ``str = {'const_ratio', 'const_ppm', 'linear', 'sqrt'}``
+        If `ci_mod` is a 2-list (or 2-tuple), the first element is str
+        and the second is the model parameter value(s) (see Notes). If
+        the model has more than one parameter, the second element is a
+        tuple holding the values. If only str is provided, default
         parameter values are used (see Notes). Default is `ci_mod` =
         'const_ratio'.
 
     Returns
     -------
-    WUE namedtuple
+    namedtuple
+        :class:`~fluxpart.containers.WUE`
 
     Notes
     -----
-    Adapted from a matlab script by JG Alfieri. Leaf-level water use
-    efficiency is estimated as [CN98]_ (pg. 238):
+    Leaf-level water use efficiency is estimated as [CN98]_ (pg. 238)::
 
         wue = 0.7 * (ca - ci) / (qa - qi)
 
-    where
+    where::
 
         ca, ci = ambient and intercellular CO2 concentration, resp.
         qa, qi = ambient and intercellular vapor concentration, resp.
 
     ca, qa, and qi are caclulated as discussed by [SS08]_.
 
-    To estimate ci (kg/m^3), the following models are available (vpd is
-    the atmospheric vapor pressure deficit, calculated internally):
+    To estimate ci, the following models are available:
 
-    'const_ppm' => ci = f(ci_ppm; temperature, pressure)
-        ci is determined from a specified constant ppm value, ci_ppm.
-        Default values for ci_ppm are 280 ppm when site.ppath='C3', and
-        130 ppm when site.ppath='C4'.  [CN98]_ (pg. 237).
+    'const_ppm'
+        ci is determined from a specified constant ppm value, ci_ppm::
 
-    'const_ratio' => ci/ca = K
-        ci/ca is constant. Default parameter values are K=0.7 for C3
-        plants and K=0.44 for C4.
+            ci = f(ci_ppm; temperature, pressure)
 
-    'linear' => ci/ca = b - m * vpd
-        ci/ca is a linear function of vpd. b is dimensionless with a
-        value of ~1 while m has units of 1/Pa.  (b, m) defaluts to
-        (1, 2e-2) for C3 plants and (1, TODO) for C4. See [MG83]_.
+        Default parameter values for ci_ppm are 280 ppm when ppath='C3',
+        and 130 ppm when ppath='C4'. [CN98]_ (pg. 237).
 
-    'sqrt' => ci/ca = 1 - sqrt(1.6 * lambd *  vpd / ca)
-        ci/ca is a function of sqrt(vpd/ca). The paramater lambd has
-        units of kg-CO2 / m^3 / Pa, and defaults to 22e-9 for C3 plants
-        and TODO for C4. See [KP09]_.
+    'const_ratio'
+        The ratio ci/ca is constant::
 
-    References
-    ----------
-    .. [CN98] GS Campbell & JM Norman (1998). An Introduction to
-    Environmental Biophysics. Springer, New York.
+            ci/ca = K.
 
-    .. [KPO09] GG Katul, S Palmroth, & R Owen (2009). Leaf stomatal
-    respones to vapour pressure deficit under current and CO2-enriched
-    atmosphere explained by the economics of gas exchange. Plant, Cell &
-    Environment, 32, 968--979. doi:10.1111/j.1365-3040.2009.01977.x
+        Default parameter values are K=0.7 for C3 plants and K=0.44 for
+        C4.
 
-    .. [MG83] JIL Morison & RM Gifford (1983). Stomatal sensitivity to
-    carbon dioxide and humidity. Plant Physiol. 71:789--796.
+    'linear'
+        ci/ca is a linear function of vpd (the atmospheric vapor
+        pressure deficit, which is calculated internally)::
 
-    .. [SS08] TM Scanlon & P. Sahu (2008). On the correlation structure
-    of water vapor and carbon dioxide in the atmospheric surface layer:
-    A basis for flux partitioning. Water Resour. Res., 44, W10418,
-    doi:10.1029/2008WR006932.
+            ci/ca = b - m * vpd
+
+        b is dimensionless with a value of ~1 while m has units of 1/Pa.
+        The parameter pair (b, m) defaluts to (1, 2e-2) for C3 plants
+        and (1, TODO) for C4. See [MG83]_.
+
+    'sqrt'
+        ci/ca is a function of sqrt(vpd/ca)::
+
+            ci/ca = 1 - sqrt(1.6 * lambd *  vpd / ca)
+
+        The paramater lambd has units of kg-CO2 / m^3 / Pa, and defaults
+        to 22e-9 for C3 plants and TODO for C4. See [KP09]_.
 
     """
 
@@ -144,29 +149,16 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
     inter_h2o = hfs.rho_totair * eps * esat / (hfs.P - (1 - eps) * esat)
 
     # Intercellular CO2 concentration, aka ci (kg/m^3)
-    ci_default_params = {
-        'C3': {'const_ppm': 280.,
-               'const_ratio': 0.7,
-               'linear': (1, 2e-2),
-               'sqrt': 22e-9},
-
-        'C4': {'const_ppm': 130.,
-               'const_ratio': 0.44,
-               'linear': (1, 2e-2),
-               'sqrt': 22e-9}}
-
     if isinstance(ci_mod, str):
         ci_mod = (ci_mod, None)
 
     ci_mod_name = ci_mod[0]
-    ci_mod_params = ci_mod[1] or ci_default_params[site.ppath][ci_mod_name]
-
+    ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[site.ppath][ci_mod_name]
     ci_dispatch = {
         'const_ppm': _ci_const_ppm(hfs.P, hfs.T, Rgas.co2),
         'const_ratio': _cica_const_ratio(ambient_co2),
         'linear': _cica_linear(ambient_co2, vpd),
         'sqrt': _cica_sqrt(ambient_co2, vpd)}
-
     inter_co2 = ci_dispatch[ci_mod_name](ci_mod_params)
 
     wue = 0.7 * (ambient_co2 - inter_co2) / (ambient_h2o - inter_h2o)

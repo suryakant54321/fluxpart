@@ -15,11 +15,11 @@ def partition_from_wqc_series(w, q, c, wue, adjust_fluxes=False):
 
     Parameters
     ----------
-    w, q, c : array_like
+    w,q,c : array_like
         1D time series for vertical wind speed `w` (m/s), water vapor
         concentration `q` (kg/m^3), and CO2 concentration `c` (kg/m^3).
-    wue : float, kg CO2 / kg H2O
-        leaf-level water use efficiency, `wue` < 0
+    wue : float
+        leaf-level water use efficiency, `wue` < 0, kg CO2 / kg H2O.
     adjust_fluxes : bool, optional
         Indicates whether the obtained partitioned fluxes should be
         adjusted so that the totals match the original data. Default is
@@ -27,14 +27,11 @@ def partition_from_wqc_series(w, q, c, wue, adjust_fluxes=False):
 
     Returns
     -------
-    dict, with keys:
-        valid_partition: bool
-            Indicates whether a valid solution was found.
-        partmssg: str
-            Possibly informative message if `valid_partition` is False.
-        fluxcomps: FluxComponents namedtuple
-        numsoln: NumerSoln namedtuple
-        qcdat: QCData namedtuple
+    dict
+        {'valid_partition': bool, 'partmssg': str,
+        'fluxcomps': :class:`~fluxpart.containers.FluxComponents`,
+        'numsoln': :class:`~fluxpart.containers.NumerSoln`,
+        'qcdat': :class:`~fluxpart.containers.QCData`}
 
     Notes
     -----
@@ -111,7 +108,9 @@ def partition_from_qc_averages(qcdat, wue, init=None):
 
     Returns
     -------
-    nsoln, fluxes : NumerSoln namedtuple, FluxComponents namedtuple
+    namedtuples
+        :class:`~fluxpart.containers.NumerSoln`,
+        :class:`~fluxpart.containers.FluxComponents`
 
     """
 
@@ -129,9 +128,10 @@ def findroot(qcdat, wue, init=None):
 
     Parameters
     ----------
-    qcdat : QCData namedtuple or equivalent namespace
-    wue : float, kg CO2 / kg H2O
-        Leaf-level water use efficiency, `wue` < 0
+    qcdat : namedtuple or equivalent namespace
+        :class:`~fluxpart.containers.QCData`
+    wue : float
+        Leaf-level water use efficiency, `wue` < 0, kg CO2 / kg H2O.
     init : (float, float), optional
         2-Tuple is initial value for (corr_cp_cr, var_cp).  If `init`
         = None (default), an initial estimate is calculated internally.
@@ -140,7 +140,8 @@ def findroot(qcdat, wue, init=None):
 
     Returns
     -------
-    NumerSoln namedtuple
+    namedtuple
+        :class:`~fluxpart.containers.NumerSoln`
 
     """
 
@@ -190,24 +191,20 @@ def flux_ratio(var_cp, corr_cp_cr, qcdat, ftype, farg):
     """Compute the nonstomatal:stomatal ratio of the H2O or CO2 flux.
 
     The ratio (either wqe/wqt or wcr/wcp) is found by solving Eq. 13
-    of [SS08].
+    of [SS08]_.
 
     Parameters
     ---------
+    qcdat : namedtuple or equivalent namespace
+        :class:`~fluxpart.containers.QCData`
     ftype : {'co2', 'h2o'}
         Specifies whether the flux is CO2 or H2O
     farg : number
-        If `ftype` = 'co2', then `farg` is an integer specifying the
-        solution of the quadratic Eq. 13b to be used to evaluate
-        the CO2 flux ratio wcr/wcp
-            1     - use the '+' solution
-            other - use the '-' solution
+        If `ftype` = 'co2', then `farg` = {0 or 1} specifies the root
+        of Eq. 13b to be used to calculate the CO2 flux ratio wcr/wcp:
+        `farg`=1 uses the '+' solution, `farg`=0 uses the '-' solution.
         If `ftype` = 'h2o', then `farg` is a float equal to the water
-        use efficiency (wue < 0) [mg g^-1]
-
-    Other Parameters
-    ----------------
-    See module docstring, >>> help(partition)
+        use efficiency (wue < 0), kg/kg.
 
     Returns
     -------
@@ -219,8 +216,10 @@ def flux_ratio(var_cp, corr_cp_cr, qcdat, ftype, farg):
     -----
     When solving for wqe/wqt, the '-' solution of the quadratic Eq. 13a
     is not relevant because only the '+' solution yields wqe/wqt > 0,
-    which is required/assumed by the physical model in [SS08].
+    which is required/assumed by the physical model in [SS08]_.
+
     """
+
     if ftype == 'co2' or ftype == 'CO2':
         sign = 1 if farg == 1 else -1
         num = qcdat.var_c
@@ -250,9 +249,13 @@ def flux_components(var_cp, corr_cp_cr, qcdat, wue, co2soln_id):
 
 
 def residual_func(x, qcdat, wue, co2soln_id):
-    """Residual function to be used with root finding routine."""
+    """Residual function used with root finding routine.
 
-    # Eq. 15 of [SS08]
+    The two components of the residual are for Eqs. 15 and 18 of [SS08]_.
+
+    """
+
+    # Eq. 15
     corr_cp_cr, var_cp = x
     wcr_ov_wcp = flux_ratio(var_cp, corr_cp_cr, qcdat, 'co2', co2soln_id)
     wqe_ov_wqt = flux_ratio(var_cp, corr_cp_cr, qcdat, 'h2o', wue)
@@ -260,7 +263,7 @@ def residual_func(x, qcdat, wue, co2soln_id):
     rhs = qcdat.wc * (wqe_ov_wqt + 1)
     resid0 = lhs - rhs
 
-    # Eq. 18 of [SS08]
+    # Eq. 18
     lhs = qcdat.corr_qc * math.sqrt(qcdat.var_c * qcdat.var_q)
     sig_cp = math.sqrt(var_cp)
     sig_cr = wcr_ov_wcp * sig_cp / corr_cp_cr
@@ -285,7 +288,14 @@ def isvalid_root(corr_cp_cr, var_cp):
 
 
 def isvalid_partition(pf):
-    """Test if partitioned flux components are valid."""
+    """Test if partitioned flux components are valid.
+
+    Parameters
+    ----------
+    pf : namedtuple
+        :class:`~fluxpart.containers.FluxComponents`
+
+    """
     isvalid = True
     mssg = ''
     if pf.wqt <= 0:
@@ -315,16 +325,18 @@ def adjust_partitioned_fluxes(fc, wue, wq_tot, wc_tot):
 
     Parameters
     ----------
-    fc : FluxComponents namedtuple, or equivalent namespace
-    wue : float, kg CO2 / kg H2O
-        Leaf-level water use efficiency (`wue` < 0)
-    wq_tot, wc_tot : floats, kg/m^2/s
-        Desired net total H2O (`wq_tot`) and CO2 (`wc_tot`) fluxes.
+    fc : :class:`~fluxpart.containers.FluxComponents` or equivalent
+        Container holding partitioned flux components, kg/m^2/s.
+    wue : float
+        Leaf-level water use efficiency (`wue` < 0), kg CO2 / kg H2O
+    wq_tot, wc_tot : float
+        Desired net total H2O (`wq_tot`) and CO2 (`wc_tot`) fluxes,
+        kg/m^2/s.
 
     Returns
     -------
-    new FluxComponents namedtuple with adjusted flux values
-
+    namedtuple
+        :class:`~fluxpart.containers.FluxComponents`
 
     """
 
@@ -340,13 +352,13 @@ def adjust_partitioned_fluxes(fc, wue, wq_tot, wc_tot):
 def progressive_lowcut(wind, vapor, co2):
     """Apply progressive lowcut filter to wind, vapor, and CO2 series.
 
-    Uses wavelet decompostion to yields a sequence of (w, q, c) series
+    Uses wavelet decompostion to yield a sequence of (w, q, c) series
     in which low frequency (large scale) components are progressively
     removed from w, q, c.
 
     Parameters
     ----------
-    wind, vapor, co2 : array-like
+    wind,vapor,co2 : array-like
         1D time series of vertical wind velocity (w), water vapor
         concentration (q), and carbon dioxide concentration (c).
 
@@ -360,7 +372,9 @@ def progressive_lowcut(wind, vapor, co2):
     -----
     The time series data are truncated at the maxium dyadic length
     (power of 2) before the filter is applied.
+
     """
+
     max_dyadic_len = 2**int(np.log2(np.asarray(co2).shape[0]))
     trunc_w = np.asarray(wind)[:max_dyadic_len]
     trunc_q = np.asarray(vapor)[:max_dyadic_len]
