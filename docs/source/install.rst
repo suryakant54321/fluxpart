@@ -42,13 +42,13 @@ Recommended:
 
         conda install anaconda-client
         conda env create ussl/fluxpart-env
-        source activate fluxpart
+        source activate fluxpart-env
 
     Windows::
 
         conda install anaconda-client
         conda env create ussl/fluxpart-env
-        activate fluxpart
+        activate fluxpart-env
 
 Alternatively:
 
@@ -104,20 +104,20 @@ Finally, create a conda environment containing **fluxpart** and its
 dependencies, as well as some useful libraries for plotting and analysis
 (Matplotlib_, Jupyter_), by entering::
 
-    conda env create ussl/fluxpart
+    conda env create ussl/fluxpart-env
 
 To activate the **fluxpart** environment, enter:
 
     Linux, Mac OS X:::
 
-        source activate fluxpart
+        source activate fluxpart-env
 
     Windows::
 
         activate fluxpart
 
-The command line prompt should now be prepended with ``(fluxpart)``, indicating
-that the **fluxpart** environment is active in the shell session.
+The command line prompt should now be prepended with ``(fluxpart-env)``,
+indicating that the **fluxpart** environment is active in the shell session.
 
 If you are new(ish) to Python_, a good tool for learning and interactively
 building-up **fluxpart** analyses is the `Jupyter notebook`__. The notebook
