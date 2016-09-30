@@ -10,13 +10,12 @@ from fluxpart.containers import WUE
 CI_DEFAULT_PARAMS = {
     'C3': {'const_ppm': 280.,    # ppm
            'const_ratio': 0.7,
-           'linear': (1, 2e-2),
+           'linear': (1, 1.6e-4),
            'sqrt': 22e-9},       # kg-co2 / m^3 / Pa
 
     'C4': {'const_ppm': 130.,
            'const_ratio': 0.44,
-           'linear': (1, 2e-2),
-           'sqrt': 22e-9}}
+           'linear': (1, 2.7e-4)}}
 
 
 def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
@@ -37,7 +36,7 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         `cov_w_T`, covariance of wind and temperature (K m/s);
         `ustar`, friction velocity (m/s);
         `rho_totair`, moist air density (kg/m^3).
-    site : :class:`~fluxpart.containners.SiteData` tuple or equivalent namespace
+    site : :class:`~fluxpart.containers.SiteData` tuple or equivalent namespace
         Container holding field-site meta data, possessing the following
         attributes:
         `meas_ht`, eddy covariance measurement height (m);
@@ -76,7 +75,8 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
     To estimate ci, the following models are available:
 
     'const_ppm'
-        ci is determined from a specified constant ppm value, ci_ppm::
+        ci (kg/m^3) is determined from a specified constant ppm value,
+        ci_ppm::
 
             ci = f(ci_ppm; temperature, pressure)
 
@@ -98,16 +98,17 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
             ci/ca = b - m * vpd
 
         b is dimensionless with a value of ~1 while m has units of 1/Pa.
-        The parameter pair (b, m) defaluts to (1, 2e-2) for C3 plants
-        and (1, TODO) for C4. See [MG83]_.
+        The parameter pair (b, m) defaluts to (1, 1.6e-4) for C3 plants
+        and (1, 2.7e-4) for C4. See [MG83]_.
 
     'sqrt'
-        ci/ca is a function of sqrt(vpd/ca)::
+        ci/ca is a function of sqrt(vpd/ca) [KPO09]_::
 
             ci/ca = 1 - sqrt(1.6 * lambd *  vpd / ca)
 
         The paramater lambd has units of kg-CO2 / m^3 / Pa, and defaults
-        to 22e-9 for C3 plants and TODO for C4. See [KPO09]_.
+        to 22e-9 for C3 plants. The sqrt model is not enabled for C4
+        plants. 
 
     """
 
@@ -117,8 +118,9 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
     # zv = Roughness parameter (L), Eqs. 5.3 and 7.19 of [CN98]
     zv = 0.2 * (0.1 * site.canopy_ht)
 
-    # Obukhov length
+    # Virtual temperature flux
     Qflux = hfs.cov_w_T + 0.61 * hfs.T * hfs.Fq / hfs.rho_totair  # K m/s
+    # Obukhov length
     obukhov_len = -hfs.T * hfs.ustar ** 3 / (VON_KARMAN * GRAVITY * Qflux)  # m
 
     # Stability correction
@@ -154,6 +156,11 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
 
     ci_mod_name = ci_mod[0]
     ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[site.ppath][ci_mod_name]
+
+    if ci_mod_name == 'sqrt' and site.ppath == 'C4':
+        err = "Combination of 'sqrt' ci model and 'C4' ppath not enabled"
+        raise ValueError(err)
+
     ci_dispatch = {
         'const_ppm': _ci_const_ppm(hfs.P, hfs.T, Rgas.co2),
         'const_ratio': _cica_const_ratio(ambient_co2),
