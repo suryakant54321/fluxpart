@@ -108,7 +108,7 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
 
         The paramater lambd has units of kg-CO2 / m^3 / Pa, and defaults
         to 22e-9 for C3 plants. The sqrt model is not enabled for C4
-        plants. 
+        plants.
 
     """
 
