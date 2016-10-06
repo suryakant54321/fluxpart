@@ -1,3 +1,3 @@
 from fluxpart.fluxpart import flux_partition
 
-__version__ = '0.1.0dev2'
+__version__ = '0.1.0dev3'

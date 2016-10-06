@@ -7,7 +7,7 @@ from setuptools import setup
 # with open('HISTORY.rst') as history_file:
 #     HISTORY = history_file.read()
 
-VERSION = '0.1.0dev2'
+VERSION = '0.1.0dev3'
 
 LONG = ("Python 3 module implementing the Scanlon and Sahu (2008) procedure "
         "for partitioning measured water vapor and carbon dioxide fluxes into "
