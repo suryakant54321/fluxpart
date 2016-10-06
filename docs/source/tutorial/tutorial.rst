@@ -19,6 +19,8 @@ listed in :ref:`fluxpart-literature`.
 .. _Python: https://www.python.org
 .. _SciPy: https://www.scipy.org
 
+.. _tutorial-quickstart:
+
 Quickstart
 ----------
 

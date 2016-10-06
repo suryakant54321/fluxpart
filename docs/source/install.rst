@@ -114,23 +114,48 @@ To activate the **fluxpart** environment, enter:
 
     Windows::
 
-        activate fluxpart
+        activate fluxpart-env
 
 The command line prompt should now be prepended with ``(fluxpart-env)``,
 indicating that the **fluxpart** environment is active in the shell session.
 
 If you are new(ish) to Python_, a good tool for learning and interactively
-building-up **fluxpart** analyses is the `Jupyter notebook`__. The notebook
-can be launched from the command line of an active **fluxpart** environment
-with::
+building-up **fluxpart** analyses is the `Jupyter notebook`__. From the command
+line, make and cd into a new working directory, e.g.::
+
+    mkdir fluxnb
+    cd fluxnb
+
+An example notebook and high-frequency eddy covariance data file can be
+downloaded with::
+
+    anaconda download ussl/tutorial-notebook
+    anaconda download ussl/tutorial-data
+
+The Jupyter notebook application can be launched from the command line of an
+active **fluxpart** shell session::
 
     jupyter notebook
 
-__ Jupyter_
+The Jupyter dashboard will start in a web browser window, and look something
+like this:
 
-See the `Jupyter documentation`_ for getting started with the notebook, and the
-**fluxpart** :ref:`fluxpart-tutorial` for getting started with
-**fluxpart**.
+.. image:: screenshot_jupyter_dashboard.png
+
+Clicking on the ``tutorial-notebook.ipynb`` link will open the notebook in a
+new browser tab:
+
+.. image:: screenshot_jupyter_notebook.png
+
+The notebook has code from the **fluxpart** :ref:`fluxpart-tutorial`. Selecting
+a cell in the notebook and hitting <Shift><Enter> executes the code in the
+cell. Note that the downloaded data is only the single file used in the
+:ref:`tutorial-quickstart` example of the :ref:`fluxpart-tutorial`, not the
+larger dataset that is used in the latter section. See the `Jupyter
+documentation`_ for complete information about Jupyter notebooks, and the
+**fluxpart** :ref:`fluxpart-tutorial` for getting started with **fluxpart**.
+
+__ Jupyter_
 
 If at some point it is desired to deactivate the **fluxpart**  environment,
 then:

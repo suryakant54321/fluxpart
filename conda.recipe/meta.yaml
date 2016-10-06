@@ -1,11 +1,11 @@
 package:
   name: fluxpart
-  version: "0.1.0.dev3"
+  version: "0.1.0.dev4"
 
 source:
-  fn: fluxpart-0.1.0.dev3.tar.gz
-  url: https://pypi.python.org/packages/a2/06/85147d57e246fbb546ddfb4afd49dfa27712f2d20b0bd7746407994cf80b/fluxpart-0.1.0.dev3.tar.gz
-  md5: a2639809d09d811d2c72d86fd3444eb7
+  fn: fluxpart-0.1.0.dev4.tar.gz
+  url: https://pypi.python.org/packages/2d/20/1093217932167cfb127869058f191cfd3d9379b94594e281194c707d7d38/fluxpart-0.1.0.dev4.tar.gz
+  md5: fee39009198427d3da73e4e8f92778e9
 #  patches:
    # List any patch files here
    # - fix.patch
