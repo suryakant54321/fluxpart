@@ -255,23 +255,21 @@ def residual_func(x, qcdat, wue, co2soln_id):
 
     """
 
-    # Eq. 15
     corr_cp_cr, var_cp = x
     wcr_ov_wcp = flux_ratio(var_cp, corr_cp_cr, qcdat, 'co2', co2soln_id)
     wqe_ov_wqt = flux_ratio(var_cp, corr_cp_cr, qcdat, 'h2o', wue)
+
+    # Eq. 3, "f1"
     lhs = wue * qcdat.wq * (wcr_ov_wcp + 1)
     rhs = qcdat.wc * (wqe_ov_wqt + 1)
-    resid0 = lhs - rhs
-
-    # Eq. 18
-    lhs = qcdat.corr_qc * math.sqrt(qcdat.var_c * qcdat.var_q)
-    sig_cp = math.sqrt(var_cp)
-    sig_cr = wcr_ov_wcp * sig_cp / corr_cp_cr
-    wqe_ov_wcr = wqe_ov_wqt / wcr_ov_wcp / wue
-    bterm = corr_cp_cr * sig_cp * sig_cr * (1 / wue + wqe_ov_wcr)
-    rhs = var_cp / wue + bterm + sig_cr**2 * wqe_ov_wcr
     resid1 = lhs - rhs
-    return [resid0, resid1]
+
+    # Eq. 4, "f2"
+    lhs = wue * qcdat.corr_qc * math.sqrt(qcdat.var_c * qcdat.var_q)
+    rhs = var_cp * (
+        1 + wqe_ov_wqt + wcr_ov_wcp + wqe_ov_wqt * wcr_ov_wcp / corr_cp_cr**2)
+    resid2 = lhs - rhs
+    return [resid1, resid2]
 
 
 def isvalid_root(corr_cp_cr, var_cp):
