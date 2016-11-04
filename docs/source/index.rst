@@ -12,5 +12,5 @@ Fluxpart
    tutorial/tutorial
    examples/index
    reference
-   background
+.. background
    literature
