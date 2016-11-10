@@ -155,11 +155,10 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         ci_mod = (ci_mod, None)
 
     ci_mod_name = ci_mod[0]
-    ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[site.ppath][ci_mod_name]
-
     if ci_mod_name == 'sqrt' and site.ppath == 'C4':
         err = "Combination of 'sqrt' ci model and 'C4' ppath not enabled"
         raise ValueError(err)
+    ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[site.ppath][ci_mod_name]
 
     ci_dispatch = {
         'const_ppm': _ci_const_ppm(hfs.P, hfs.T, Rgas.co2),
