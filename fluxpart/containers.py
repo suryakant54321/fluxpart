@@ -2,19 +2,6 @@
 
 from collections import namedtuple
 
-class SiteData(namedtuple('SiteData', 'meas_ht canopy_ht ppath')):
-    """Field site meta data.
-
-    Attributes
-    ----------
-    meas_ht, canopy_ht : float
-        Eddy covariance measurement height and canopy height, m
-    ppath : {'C3' or 'C4'}
-        Photosynthetic pathway
-
-    """
-
-    __slots__ = ()
 
 class FluxComponents(namedtuple('FluxComponents', 'wq wqt wqe wc wcp wcr')):
     """Vapor and CO2 flux components.

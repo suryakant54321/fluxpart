@@ -2,7 +2,7 @@ import os
 from types import SimpleNamespace
 import numpy.testing as npt
 from fluxpart import flux_partition
-from fluxpart.fluxpart import _set_fieldsite_data
+#from fluxpart.fluxpart import _set_fieldsite_data
 
 TESTDIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -16,7 +16,8 @@ def test_flux_partition():
     """
 
     cols = (2, 3, 4, 6, 5, 7, 8)
-    site_data = SimpleNamespace(meas_ht=7.11, canopy_ht=4.42, ppath='C3')
+    wue_data = {'meas_ht':7.11, 'canopy_ht':4.42, 'ppath': 'C3',
+                 'ci_mod': 'const_ppm'}
 
     # soln exists for this data without any wavelet filtering
     fname = os.path.join(TESTDIR,
@@ -35,14 +36,13 @@ def test_flux_partition():
     result = flux_partition(
         fname,
         cols=cols,
-        sitedata=site_data,
+        wue_params=wue_data,
         delimiter=",",
         skip_header=4,
         unit_convert={
             'q': 1e-3,
             'c': 1e-6,
             'P': 1e3},
-        ci_mod='const_ppm',
         temper_unit='C')
 
     npt.assert_allclose(result['numsoln'].var_cp, 18.9272e-12, atol=1e-12)
@@ -65,15 +65,14 @@ def test_flux_partition():
     result = flux_partition(
         fname,
         cols=cols,
-        sitedata=site_data,
+        wue_params=wue_data,
         delimiter=",",
         skip_header=4,
         unit_convert={
             'q': 1e-3,
             'c': 1e-6,
             'P': 1e3},
-        temper_unit='C',
-        ci_mod='const_ppm')
+        temper_unit='C')
 
     npt.assert_allclose(result['numsoln'].var_cp, 15.2944e-12, atol=1e-12)
     assert_flux_components(result['fluxes'], matlab_fluxes)
@@ -90,26 +89,5 @@ def assert_flux_components(calc, desired):
     npt.assert_allclose(calc.LEt, desired.LEt, atol=50)
 
 
-def assert_set_data(data):
-    npt.assert_allclose(data.meas_ht, 3)
-    npt.assert_allclose(data.canopy_ht, 2.5)
-    assert data.ppath == 'C4'
-
-
-def test_set_fieldsite_data():
-    """Test different argument types (dict, list, tuple, etc.) for
-    passing field meta data."""
-    data = _set_fieldsite_data({'meas_ht': 3, 'canopy_ht': 2.5, 'ppath': 'C4'})
-    assert_set_data(data)
-    data = _set_fieldsite_data([3, 2.5, 'C4'])
-    assert_set_data(data)
-    data = _set_fieldsite_data((3, 2.5, 'C4'))
-    assert_set_data(data)
-    data = _set_fieldsite_data(
-        SimpleNamespace(meas_ht=3, canopy_ht=2.5, ppath='C4'))
-    assert_set_data(data)
-
-
 if __name__ == "__main__":
     test_flux_partition()
-    test_set_fieldsite_data()

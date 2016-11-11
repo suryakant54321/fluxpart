@@ -4,13 +4,18 @@ import fluxpart.partition as fp
 import fluxpart.wue as wue
 import fluxpart.util as util
 from fluxpart.hfdata import HFData
-from fluxpart.containers import SiteData, Fluxes, WUE, Result
+from fluxpart.containers import Fluxes, WUE, Result
 
+DEFAULT_WUE_PARAMS = {
+    'ci_mod': 'const_ratio',
+    'ci_mod_param': None,
+    'meas_leaf_temp': None,
+    'leaf_temp_corr': 0}
 
-def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
+def flux_partition(fname, cols, unit_convert=None, temper_unit='K',
                    bounds=None, flags=None, rd_tol=0.4, ad_tol=1024,
                    correcting_external=True, adjusting_fluxes=False,
-                   meas_wue=None, ci_mod='const_ratio', label=None, **kwargs):
+                   meas_wue=None, wue_params={}, label=None, **kwargs):
     """Partition CO2 & H2O fluxes into stomatal & nonstomatal components.
 
     This is the primary user interface for :mod:`Fluxpart` and provides
@@ -44,14 +49,7 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
         7-tuple of integers indicating the column numbers of `fname`
         that contain series data for (u, v, w, q, c, T, P), in that
         order. Uses 0-based indexing.
-    sitedata : dict or comparable namespace
-        Container holding field site meta data with the following 3 keys
-        'meas_ht', the eddy covariance measurement height (m);
-        'canopy_ht', the plant canopy height (m); and 'ppath' = 'C3' or
-        'C4', the vegetation photosynthetic pathway. `sitedata` is
-        required unless a value for `meas_wue` is provided, in which
-        case `sitedata` can be set to None.
-    unit_convert : dict, optional
+   unit_convert : dict, optional
         Dictionary of multiplication factors required to convert any
         u, v, w, q, c, or P data not in SI units to SI units (m/s,
         kg/m^3, Pa). (Note T is not in that list). The dictionary keys
@@ -106,12 +104,18 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
     meas_wue : float, optional
         Measured leaf-level water use efficiency (kg CO2 / kg H2O). Due
         to sign conventions, `meas_wue` must be < 0.
-    ci_mod : str or [str, float] or [str, (float, float)], optional
-        Method used to estimate the leaf intercellular CO2 concentration
-        when calculating water use efficiency. See
+    wue_params : dict, optional
+        Dict of parameters used to estimate water use efficiency if
+        `meas_wue` is not provided. Is not used if `meas_wue` is
+        provided. The following dictionary entries must be provided:
+        'canopy_ht' : float, canopy height (m);
+        'meas_ht' : float, eddy covariance measurement height (m);
+        'ppath' : {'C3', ''C4'}, photosynthetic pathway.
+        The optional entries and their default values are:
+        {'ci_mod': 'const_ratio', 'ci_mod_param': None,
+        'meas_leaf_temp': None, 'leaf_temp_corr': 0}.  See 
         :func:`~fluxpart.wue.water_use_efficiency` for a full
-        description of `ci_mod`.  Default is `ci_mod` = 'const_ratio'.
-        Not used if meas_wue if provided.
+        description of these parameters.
     label : object, optional
         Identification label for the data set. Could be a str, int,
         datetime object, etc.
@@ -192,34 +196,27 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
                 'numsoln': None}
 
     # get or calculate water use efficiency
-    try:
-        lwue = WUE(float(meas_wue), *8 * (np.nan,))
-    except TypeError:
-        try:
-            meta = _set_fieldsite_data(sitedata)
-        except (TypeError, KeyError, AttributeError) as err:
-            lwue = WUE(*np.full(9, np.nan))
-            mssg = err.args[0]
-            result = Result(dataread=True, valid_partition=False, mssg=mssg)
-        else:
-            lwue = wue.water_use_efficiency(hfsum, meta, ci_mod)
-            if lwue.wue is np.nan or lwue.wue >= 0:
-                mssg = ('wue={} must be less than zero'.format(lwue.wue))
-                result = Result(dataread=True, valid_partition=False,
-                                mssg=mssg)
+    # py3.5
+    wue_params = {**DEFAULT_WUE_PARAMS, **wue_params}
+    if meas_wue:
+        leaf_wue = WUE(float(meas_wue), *8 * (np.nan,))
+    else:
+        leaf_wue = wue.water_use_efficiency(hfsum, **wue_params)
 
-    # exit if wue value is no good
-    if lwue.wue is np.nan or lwue.wue >= 0:
+    # exit if wue value is bad
+    if not leaf_wue.wue < 0:
+        mssg = ('wue={} must be less than zero'.format(leaf_wue.wue))
+        result = Result(dataread=True, valid_partition=False, mssg=mssg)
         return {'label': label,
                 'result': result,
                 'fluxes': Fluxes(*np.full(12, np.nan)),
                 'datsumm': hfsum,
-                'wue': lwue,
+                'wue': leaf_wue,
                 'numsoln': None}
 
     # compute partitioned fluxes
     pout = fp.partition_from_wqc_series(hfdat['w'], hfdat['q'], hfdat['c'],
-                                        lwue.wue, adjusting_fluxes)
+                                        leaf_wue.wue, adjusting_fluxes)
 
     # collect results and return
     result = Result(dataread=True,
@@ -242,7 +239,7 @@ def flux_partition(fname, cols, sitedata, unit_convert=None, temper_unit='K',
             'result': result,
             'fluxes': fluxes,
             'datsumm': hfsum,
-            'wue': lwue,
+            'wue': leaf_wue,
             'numsoln': pout['numsoln'],
             'qcdat': pout['qcdat']}
 
@@ -256,57 +253,6 @@ def _converter_func(slope, intercept):
         except ValueError:
             return np.nan
     return func
-
-
-def _set_fieldsite_data(data):
-    """Parse and verify site `data`, return a SiteData namedtuple."""
-
-    # parse `data`
-    try:
-        meas_ht = data['meas_ht']
-        canopy_ht = data['canopy_ht']
-        ppath = data['ppath']
-    except KeyError as err:
-        err.args = ('sitedata dict missing required entry: ' + err.args[0],)
-        raise
-    # not a dict, check attributes
-    except TypeError:
-        try:
-            meas_ht = data.meas_ht
-            canopy_ht = data.canopy_ht
-            ppath = data.ppath
-        # lacks required attribures, try list
-        except AttributeError:
-            try:
-                meas_ht = data[0]
-                canopy_ht = data[1]
-                ppath = data[2]
-            # unable to parse `data`, raise error
-            except IndexError as err:
-                raise TypeError('Unable to parse sitedata = {}'.format(data))
-
-    # `data` parse is success, verify values
-    try:
-        ppath = str(ppath).upper()
-        if ppath not in ('C3', 'C4'):
-            raise ValueError
-    except (TypeError, ValueError) as err:
-        err.args = ("sitedata(ppath={}): ppath must be 'C3' or 'C4'"
-                    "".format(ppath),)
-        raise
-    try:
-        meas_ht = float(meas_ht)
-        canopy_ht = float(canopy_ht)
-    except ValueError as err:
-        err.args = (("sitedata(meas_ht={}, canopy_ht={}): "
-                     + err.args[0]).format(meas_ht, canopy_ht),)
-        raise
-    if meas_ht <= 0 or canopy_ht <= 0:
-        raise ValueError("sitedata(meas_ht={}m, canopy_ht={}m): both values "
-                         "must be positive".format(meas_ht, canopy_ht),)
-
-    # data values are plausible, return SiteData tuple
-    return SiteData(meas_ht=meas_ht, canopy_ht=canopy_ht, ppath=ppath)
 
 
 if __name__ == "__main__":

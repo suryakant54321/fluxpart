@@ -8,8 +8,6 @@ def test_water_use_efficiency():
     this fails, something has changed, and better understand why.
     """
 
-    site_data = SimpleNamespace(meas_ht=7.11, canopy_ht=4.42, ppath='C3')
-
     hf_stats = SimpleNamespace(
         rho_vapor=9.607e-3,
         rho_co2=658.8e-6,
@@ -21,7 +19,8 @@ def test_water_use_efficiency():
         ustar=0.4179,
         rho_totair=1.150)
 
-    wue = water_use_efficiency(hf_stats, site_data, ci_mod='const_ppm')
+    wue = water_use_efficiency(hf_stats, meas_ht=7.11, canopy_ht=4.42,
+                               ppath='C3', ci_mod='const_ppm')
 
     npt.assert_allclose(wue.wue, -6.45e-3, atol=0.005e-3)
     npt.assert_allclose(wue.ambient_h2o, 12.4e-3, atol=0.05e-3)

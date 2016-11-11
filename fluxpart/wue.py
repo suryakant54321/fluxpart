@@ -18,7 +18,9 @@ CI_DEFAULT_PARAMS = {
            'linear': (1, 2.7e-4)}}
 
 
-def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
+def water_use_efficiency(hfs, meas_ht, canopy_ht, ppath, ci_mod, 
+                         ci_mod_param=None, meas_leaf_temp=None,
+                         leaf_temp_corr=0):
 
     """Estimate leaf-level water use efficiency.
 
@@ -36,23 +38,30 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         `cov_w_T`, covariance of wind and temperature (K m/s);
         `ustar`, friction velocity (m/s);
         `rho_totair`, moist air density (kg/m^3).
-    site : :class:`~fluxpart.containers.SiteData` tuple or equivalent namespace
-        Container holding field-site meta data, possessing the following
-        attributes:
-        `meas_ht`, eddy covariance measurement height (m);
-        `canopy_ht`, vegetation canopy height (m);
-        `ppath`, photosynthetic pathway ('C3' or 'C4')
-    ci_mod : str or [str, float] or [str, (float, float)], optional
+    meas_ht, canopy_ht : float 
+        `meas_ht` = eddy covariance measurement height (m); 
+        `canopy_ht` = vegetation canopy height (m);
+    ppath : {'C3', 'C4'}
+         photosynthetic pathway
+    ci_mod : {'const_ratio', 'const_ppm', 'linear', 'sqrt'}``
         Specifies the model to be used to determine the leaf
-        intercellular CO2 concentration. The str is the model name
-        and is one fo the following (see Notes below for definitions),
-        ``str = {'const_ratio', 'const_ppm', 'linear', 'sqrt'}``
-        If `ci_mod` is a 2-list (or 2-tuple), the first element is str
-        and the second is the model parameter value(s) (see Notes). If
-        the model has more than one parameter, the second element is a
-        tuple holding the values. If only str is provided, default
-        parameter values are used (see Notes). Default is `ci_mod` =
-        'const_ratio'.
+        intercellular CO2 concentration. See Notes below for model
+        descriptions.
+    ci_mod_param : float or 2-tuple of floats, optional
+        Paramter values to be used with `ci_mod`. The number of
+        parameters required depends on the model (see Notes). The
+        default is ci_mod_param=None, in which case default values are
+        used
+    meas_leaf_temp : float, optional
+        Measured canopy tempeature in degrees K. If None (defalut), the 
+        leaf temperature is taken to be equal to the air temperature in
+        `hfs`.
+    leaf_temp_corr : float, optional
+        Optional adjustment to leaf temperature. The temperature used to
+        calculate intercelluat vapor and CO2 concentrations is
+        leaf_T + leaf_temp_corr, where leaf_T is `meas_leaf_temp` if
+        provided, and the air temperature in `hfs` otherwise. Default is
+        leaf_temp_corr = 0.
 
     Returns
     -------
@@ -114,9 +123,9 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
 
     # Assume zero-plane and roughness params for vapor and CO2 are the same.
     # d0 = Zero-plane displacement height (L), Eq. 5.2 of [CN98]
-    d0 = 0.65 * site.canopy_ht
+    d0 = 0.65 * canopy_ht
     # zv = Roughness parameter (L), Eqs. 5.3 and 7.19 of [CN98]
-    zv = 0.2 * (0.1 * site.canopy_ht)
+    zv = 0.2 * (0.1 * canopy_ht)
 
     # Virtual temperature flux
     Qflux = hfs.cov_w_T + 0.61 * hfs.T * hfs.Fq / hfs.rho_totair  # K m/s
@@ -124,7 +133,7 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
     obukhov_len = -hfs.T * hfs.ustar ** 3 / (VON_KARMAN * GRAVITY * Qflux)  # m
 
     # Stability correction
-    zeta = (site.meas_ht - d0) / obukhov_len
+    zeta = (meas_ht - d0) / obukhov_len
     # Unstable
     if zeta < -0.04:
         psi_v = 2. * log((1 + (1 - 16. * zeta) ** 0.5) / 2)
@@ -136,17 +145,19 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         psi_v = -5. * zeta
 
     # Ambient concentrations (kg/m^3)
-    arg = (log((site.meas_ht - d0) / zv) - psi_v) / VON_KARMAN / hfs.ustar
+    arg = (log((meas_ht - d0) / zv) - psi_v) / VON_KARMAN / hfs.ustar
     ambient_h2o = (hfs.rho_vapor + hfs.Fq * arg)
     ambient_co2 = (hfs.rho_co2 + hfs.Fc * arg)
 
-    # Saturation vapor pressure `esat` & vapor pressure deficit `vpd`
-    Tr = 1 - 373.15 / hfs.T
+    leaf_T = (meas_leaf_temp or hfs.T) + leaf_temp_corr
+    # Intercellular saturation vapor pressure `esat`
+    Tr = 1 - 373.15 / leaf_T
     esat = 101325. * (
         exp(13.3185 * Tr - 1.9760 * Tr**2 - 0.6445 * Tr**3 - 0.1299 * Tr**4))
-    vpd = esat - hfs.rho_vapor * Rgas.vapor * hfs.T
+    # Intercellular vapor pressure deficit `vpd`
+    vpd = esat - hfs.rho_vapor * Rgas.vapor * leaf_T
 
-    # Intercellular vapor density. Assume leaf temperature = air temperature.
+    # Intercellular vapor density.
     eps = MW.vapor / MW.dryair
     inter_h2o = hfs.rho_totair * eps * esat / (hfs.P - (1 - eps) * esat)
 
@@ -155,13 +166,13 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         ci_mod = (ci_mod, None)
 
     ci_mod_name = ci_mod[0]
-    if ci_mod_name == 'sqrt' and site.ppath == 'C4':
+    if ci_mod_name == 'sqrt' and ppath == 'C4':
         err = "Combination of 'sqrt' ci model and 'C4' ppath not enabled"
         raise ValueError(err)
-    ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[site.ppath][ci_mod_name]
+    ci_mod_params = ci_mod[1] or CI_DEFAULT_PARAMS[ppath][ci_mod_name]
 
     ci_dispatch = {
-        'const_ppm': _ci_const_ppm(hfs.P, hfs.T, Rgas.co2),
+        'const_ppm': _ci_const_ppm(hfs.P, leaf_T, Rgas.co2),
         'const_ratio': _cica_const_ratio(ambient_co2),
         'linear': _cica_linear(ambient_co2, vpd),
         'sqrt': _cica_sqrt(ambient_co2, vpd)}
@@ -176,9 +187,9 @@ def water_use_efficiency(hfs, site, ci_mod='const_ratio'):
         ambient_h2o=ambient_h2o,
         ambient_co2=ambient_co2,
         vpd=vpd,
-        ppath=site.ppath,
-        meas_ht=site.meas_ht,
-        canopy_ht=site.canopy_ht,
+        ppath=ppath,
+        meas_ht=meas_ht,
+        canopy_ht=canopy_ht,
         ci_mod=(ci_mod_name, ci_mod_params))
 
 
