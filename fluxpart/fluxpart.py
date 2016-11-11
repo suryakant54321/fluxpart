@@ -14,7 +14,7 @@ DEFAULT_WUE_PARAMS = {
 
 def flux_partition(fname, cols, unit_convert=None, temper_unit='K',
                    bounds=None, flags=None, rd_tol=0.4, ad_tol=1024,
-                   correcting_external=True, adjusting_fluxes=False,
+                   correcting_external=True, adjusting_fluxes=True,
                    meas_wue=None, wue_params={}, label=None, **kwargs):
     """Partition CO2 & H2O fluxes into stomatal & nonstomatal components.
 
