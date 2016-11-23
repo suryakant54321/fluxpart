@@ -12,10 +12,19 @@ DEFAULT_WUE_PARAMS = {
     'meas_leaf_temp': None,
     'leaf_temp_corr': 0}
 
-def flux_partition(fname, cols, unit_convert=None, temper_unit='K',
-                   bounds=None, flags=None, rd_tol=0.4, ad_tol=1024,
-                   correcting_external=True, adjusting_fluxes=True,
-                   meas_wue=None, wue_params={}, label=None, **kwargs):
+DEFAULT_HFD_PARAMS = {
+    'unit_convert': None,
+    'temper_unit': 'K',
+    'bounds': None,
+    'flags': None,
+    'rd_tol': 0.4,
+    'ad_tol': 1024,
+    'fv_tol': 0.1,
+    'correcting_external': True}
+
+
+def flux_partition(fname, cols, hfd_params=None, meas_wue=None,
+                   wue_params=None, label=None, adjusting_fluxes=True):
     """Partition CO2 & H2O fluxes into stomatal & nonstomatal components.
 
     This is the primary user interface for :mod:`Fluxpart` and provides
@@ -155,18 +164,26 @@ def flux_partition(fname, cols, unit_convert=None, temper_unit='K',
 
     usecols = np.array(cols, dtype=int).reshape(7,)
 
+    # py3.5
+    hfd_params = {**DEFAULT_HFD_PARAMS, **hfd_params}
+
     converters = None
+    unit_convert = hfd_params.pop('unit_convert')
     if unit_convert:
         converters = {
             k: _converter_func(float(v), 0.) for k, v in unit_convert.items()}
+
+    temper_unit = hfd_params.pop('temper_unit')
     if temper_unit.upper() == 'C' or temper_unit.upper() == 'CELSIUS':
         converters = converters or {}
         converters['T'] = _converter_func(1., 273.15)
 
+    correcting_external = hfd_params.pop('correcting_external')
+    fv_tol = hfd_params.pop('fv_tol')
+
     # read high frequency data
     try:
-        hfdat = HFData(fname, cols=usecols, converters=converters, flags=flags,
-                       bounds=bounds, rd_tol=rd_tol, ad_tol=ad_tol, **kwargs)
+        hfdat = HFData(fname, cols=usecols, converters=converters, **hfd_params)
     except (TypeError, ValueError) as err:
         mssg = 'HFData read fail: ' + err.args[0]
         result = Result(dataread=False, valid_partition=False, mssg=mssg)
@@ -187,6 +204,18 @@ def flux_partition(fname, cols, unit_convert=None, temper_unit='K',
     if hfsum.Fq <= 0:
         mssg = ('Negative (downward) water vapor flux, Fq = {:.4}, is '
                 'incompatible with partitioning algorithm'.format(hfsum.Fq))
+        result = Result(dataread=True, valid_partition=False, mssg=mssg)
+        return {'label': label,
+                'result': result,
+                'fluxes': Fluxes(*np.full(12, np.nan)),
+                'datsumm': hfsum,
+                'wue': None,
+                'numsoln': None}
+
+    # exit if friction velocicity is too low (lack of turbulance)
+    if hfsum.ustar < fv_tol:
+        mssg = ('Friction velocity (ustar = {:.4}) is below threshold '
+                '(fv_tol = {:.4})'.format(hfsum.ustar, fv_tol))
         result = Result(dataread=True, valid_partition=False, mssg=mssg)
         return {'label': label,
                 'result': result,
